@@ -1,0 +1,8 @@
+html {
+  transition: all 0.3s ease;
+}
+
+html.dark {
+  background-color: #000;
+  color: #fff;
+}
