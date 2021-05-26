@@ -8,12 +8,24 @@
       Sign in to start using Phake Platform.
     </p>
 
+    <p
+      v-if="form.errors.message"
+      class="
+        mb-4
+        px-4
+        bg-red-200
+        text-red-800
+        dark:text-white
+        dark:bg-red-900
+        rounded
+        py-2
+      "
+    >
+      {{ form.errors.status }}{{ form.errors.message }}
+    </p>
+
     <template v-if="state.type === 'magic-link'">
       <div class="border-b border-gray-200 mb-4 pb-4 dark:border-gray-900">
-        <p v-if="form.errors.message">
-          {{ form.errors.status }} - {{ form.errors.message }}
-        </p>
-
         <p v-if="form.message">
           {{ form.message }}
         </p>
@@ -99,13 +111,14 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, reactive, watch } from "vue";
-import { useRouter } from "vue-router";
+import { defineComponent, nextTick, onMounted, reactive, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import { useAuth } from "../../modules/useAuth";
-import { handleLoginWithMagicLink } from "../../use/useAuth";
 
 export default defineComponent({
   setup() {
+    const router = useRouter();
+    const { query } = useRoute();
     const form = reactive<any>({
       enabled: false,
       email: "",
@@ -118,12 +131,14 @@ export default defineComponent({
     });
     const state = reactive<any>({
       type: null,
+      service: null,
+      continue: undefined,
     });
-    const router = useRouter();
     const loading = reactive<any>({
       signInWithProvider: false,
     });
-    const { signInWithProvider, authenticated } = useAuth();
+    const { signInWithProvider, signInWithMagicLink, authenticated } =
+      useAuth();
 
     watch(authenticated, (value: boolean) => {
       if (value === true) {
@@ -131,10 +146,19 @@ export default defineComponent({
       }
     });
 
+    onMounted(async () => {
+      await nextTick();
+      if (query.service) state.service = query.service || null;
+      if (query.continue) state.continue = query.continue || undefined;
+    });
+
     const signin = async (): Promise<void> => {
       try {
         form.loading = true;
-        const { error, message } = await handleLoginWithMagicLink(form.email);
+        const { error, message } = await signInWithMagicLink(
+          form.email,
+          state.continue
+        );
         if (error) {
           throw error;
         }
@@ -150,7 +174,7 @@ export default defineComponent({
     const signInWithOAuth = async (provider: string): Promise<void> => {
       try {
         loading.signInWithProvider = true;
-        await signInWithProvider(provider);
+        await signInWithProvider(provider, state.continue);
         loading.signInWithProvider = false;
       } catch (err) {
         form.errors.message = err.message;

@@ -27,8 +27,20 @@ export const useAuth = (): any => {
   };
 
   // Sign in with OAuth provider
-  const signInWithProvider = async (provider: Provider) => {
-    const { error } = await supabase.auth.signIn({ provider });
+  const signInWithProvider = async (
+    provider: Provider,
+    redirectTo: string | undefined = undefined
+  ) => {
+    const { error } = await supabase.auth.signIn(
+      { provider },
+      {
+        redirectTo:
+          typeof redirectTo !== "undefined"
+            ? `${import.meta.env.VITE_BASE_URL}/auth/continue?url=${redirectTo}`
+            : undefined,
+      }
+    );
+
     if (error) {
       console.error("[supabase.auth.signInWithProvider]", error);
       return { error };
@@ -37,11 +49,24 @@ export const useAuth = (): any => {
   };
 
   // Sign in with magic link
-  const signInWithMagicLink = async (email: string): Promise<any> => {
+  const signInWithMagicLink = async (
+    email: string,
+    redirectTo: string | undefined = undefined
+  ): Promise<any> => {
     try {
-      const { error, user } = await supabase.auth.signIn({
-        email: email,
-      });
+      const { error, user } = await supabase.auth.signIn(
+        {
+          email: email,
+        },
+        {
+          redirectTo:
+            typeof redirectTo !== "undefined"
+              ? `${
+                  import.meta.env.VITE_SUPABASE_KEY
+                }/auth/continue?url=${redirectTo}`
+              : undefined,
+        }
+      );
       if (error) {
         console.log("[supabase.auth.signInWithMagicLink]", error);
         return { error };

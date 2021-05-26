@@ -10,6 +10,13 @@ const routes: Array<RouteRecordRaw> = [
   },
 
   {
+    path: "/auth/continue",
+    name: "continue",
+    component: () =>
+      import(/* webpackChunkName: "continue" */ "../pages/auth/continue.vue"),
+  },
+
+  {
     path: "/auth/signin",
     name: "signin",
     component: () =>

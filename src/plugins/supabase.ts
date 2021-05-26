@@ -1,4 +1,4 @@
-import { useLoading, useAuth } from "../modules";
+import { useAuth } from "../modules";
 import { supabase } from "../services/supabase";
 
 export default {
